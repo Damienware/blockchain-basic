@@ -40,7 +40,19 @@ class Blockchain:
         previous_proof = previous_block["proof"]
         index = len(self.chain) + 1
         proof = self._proof_of_work(previous_proof, index, data)
+        previous_hash = self._hash(block=previous_block)
+        block = self._create_block(data=data, proof = proof, previous_hash=previous_hash, index=index)
+        self.chain.append(block)
+        return block
         pass
+
+    def _hash(self, block: dict) -> str:
+        """
+        Hash a block and return the cryptographic hash of the block
+        """
+        encoded_block = _json.dumps(block, sort_keys = True).encode()
+
+        return _hashlib.sha256(encoded_block).hexdigest()
     
     def _to_digest(self, new_proof:int, previous_proof: int, index: str, data: str) -> bytes:
         to_digest = str(new_proof ** 2 - previous_proof ** 2 + index) + data
@@ -52,7 +64,6 @@ class Blockchain:
         check_proof = False
 
         while not check_proof:
-            print(new_proof)
             to_digest = self._to_digest(new_proof=new_proof, previous_proof=previous_proof, index=index, data=data)
             hash_value = _hashlib.sha256(to_digest).hexdigest()
             if hash_value[:4] == "0000":
