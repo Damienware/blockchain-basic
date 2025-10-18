@@ -86,3 +86,36 @@ class Blockchain:
         }
 
         return block
+    
+    def is_chain_valid(self) -> bool:
+        current_block = self.chain[0]
+        block_index = 1
+
+        while block_index < len(self.chain):
+            next_block = self.chain[block_index]
+
+            if next_block["previous_hash"] != self._hash(current_block):
+                return False
+        
+            current_proof = current_block["proof"]
+            next_index, next_data, next_proof = (
+            next_block["index"], 
+            next_block["data"], 
+            next_block["proof"],
+            )
+            hash_value = _hashlib.sha256(
+                self._to_digest(
+                    new_proof=next_proof, 
+                    previous_proof=current_proof, 
+                    index=next_index, 
+                    data=next_data
+                    )
+                ).hexdigest()
+
+            if hash_value[:4] != "0000":
+                return False
+        
+            current_block = next_block
+            block_index += 1
+
+        return True
